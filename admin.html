@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Signage Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Work+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF6B35;
+            --secondary: #004E89;
+            --accent: #F7B801;
+            --dark: #1A1A2E;
+            --light: #FFFFFF;
+            --success: #06D6A0;
+            --danger: #EF476F;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Work Sans', sans-serif;
+            background: linear-gradient(135deg, #1A1A2E 0%, #16213E 50%, #0F3460 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            max-width: 400px;
+            margin: 10vh auto;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 3rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .login-screen.hidden {
+            display: none;
+        }
+
+        .logo {
+            font-family: 'Archivo Black', sans-serif;
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--accent);
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            display: none;
+        }
+
+        .admin-panel.active {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .header h1 {
+            font-family: 'Archivo Black', sans-serif;
+            color: var(--accent);
+            font-size: 2.5rem;
+        }
+
+        .logout-btn {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: #d63a5c;
+            transform: translateY(-2px);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            color: var(--light);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Archivo Black', sans-serif;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .tab:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .tab.active {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 16px;
+            padding: 2rem;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        input[type="text"],
+        input[type="password"],
+        input[type="url"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            color: var(--light);
+            font-family: 'Work Sans', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Work Sans', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #e55a2a;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-success {
+            background: var(--success);
+        }
+
+        .btn-success:hover {
+            background: #05c295;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background: #d63a5c;
+        }
+
+        /* Item List */
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .item {
+            background: rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .item:hover {
+            border-color: var(--primary);
+        }
+
+        .item-content {
+            flex: 1;
+        }
+
+        .item-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .item-text {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .item-actions button {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+        }
+
+        /* Message */
+        .message {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .message.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.success {
+            background: rgba(6,214,160,0.2);
+            border: 2px solid var(--success);
+        }
+
+        .message.error {
+            background: rgba(239,71,111,0.2);
+            border: 2px solid var(--danger);
+        }
+
+        /* Instructions */
+        .instructions {
+            background: rgba(247,184,1,0.1);
+            border: 2px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .instructions h3 {
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .instructions p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.2);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-screen" id="loginScreen">
+        <div class="logo">🖥️ SIGNAGE ADMIN</div>
+        <div class="message" id="loginMessage"></div>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="loginPassword" required placeholder="Enter admin password">
+            </div>
+            <button type="submit" style="width: 100%;">LOGIN</button>
+        </form>
+    </div>
+
+    <!-- Admin Panel -->
+    <div class="container">
+        <div class="admin-panel" id="adminPanel">
+            <div class="header">
+                <h1>📺 Digital Signage Admin</h1>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+
+            <div class="message" id="globalMessage"></div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('ticker')">Scrolling Text</div>
+                <div class="tab" onclick="switchTab('slides')">Slideshow</div>
+                <div class="tab" onclick="switchTab('ads')">Advertisements</div>
+                <div class="tab" onclick="switchTab('footer')">Footer Text</div>
+                <div class="tab" onclick="switchTab('settings')">Settings</div>
+            </div>
+
+            <!-- Ticker Tab -->
+            <div class="tab-content active" id="ticker-content">
+                <h2 style="margin-bottom: 1rem;">Scrolling Ticker Messages</h2>
+                <div class="instructions">
+                    <h3>Instructions</h3>
+                    <p>Add short messages that will scroll across the top of the display. These are great for announcements, alerts, or general information.</p>
+                </div>
+                <div class="item-list" id="tickerList"></div>
+                <form id="tickerForm">
+                    <div class="form-group">
+                        <label>New Ticker Message</label>
+                        <input type="text" id="tickerText" required placeholder="Enter message text">
+                    </div>
+                    <button type="submit" class="btn-success">➕ Add Message</button>
+                </form>
+            </div>
+
+            <!-- Slides Tab -->
+            <div class="tab-content" id="slides-content">
+                <h2 style="margin-bottom: 1rem;">Slideshow Content</h2>
+                <div class="instructions">
+                    <h3>Instructions</h3>
+                    <p>Create slides with images, titles, and descriptions. Use direct image URLs (e.g., from Google Drive, Imgur, or other image hosts).</p>
+                </div>
+                <div class="item-list" id="slidesList"></div>
+                <form id="slidesForm">
+                    <div class="form-group">
+                        <label>Slide Title</label>
+                        <input type="text" id="slideTitle" placeholder="Enter slide title">
+                    </div>
+                    <div class="form-group">
+                        <label>Slide Description</label>
+                        <textarea id="slideDescription" placeholder="Enter slide description"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" id="slideImage" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <button type="submit" class="btn-success">➕ Add Slide</button>
+                </form>
+            </div>
+
+            <!-- Ads Tab -->
+            <div class="tab-content" id="ads-content">
+                <h2 style="margin-bottom: 1rem;">Advertisement Management</h2>
+                <div class="instructions">
+                    <h3>Instructions</h3>
+                    <p>Create advertisements that will appear in the sidebar. Include an image, title, and promotional text.</p>
+                </div>
+                <div class="item-list" id="adsList"></div>
+                <form id="adsForm">
+                    <div class="form-group">
+                        <label>Ad Title</label>
+                        <input type="text" id="adTitle" placeholder="Enter ad title">
+                    </div>
+                    <div class="form-group">
+                        <label>Ad Text</label>
+                        <textarea id="adText" placeholder="Enter ad text"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" id="adImage" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <button type="submit" class="btn-success">➕ Add Advertisement</button>
+                </form>
+            </div>
+
+            <!-- Footer Tab -->
+            <div class="tab-content" id="footer-content">
+                <h2 style="margin-bottom: 1rem;">Footer Ticker Messages</h2>
+                <div class="instructions">
+                    <h3>Instructions</h3>
+                    <p>Add messages that will scroll across the bottom footer. These appear larger and are great for emphasizing important information.</p>
+                </div>
+                <div class="item-list" id="footerList"></div>
+                <form id="footerForm">
+                    <div class="form-group">
+                        <label>New Footer Message</label>
+                        <input type="text" id="footerText" required placeholder="Enter message text">
+                    </div>
+                    <button type="submit" class="btn-success">➕ Add Message</button>
+                </form>
+            </div>
+
+            <!-- Settings Tab -->
+            <div class="tab-content" id="settings-content">
+                <h2 style="margin-bottom: 1rem;">Settings</h2>
+                <div class="instructions">
+                    <h3>Google Apps Script Configuration</h3>
+                    <p>Your Google Apps Script Web App URL is configured in the backend. Make sure to update the URL in both display.html and admin.html files.</p>
+                </div>
+                <div class="form-group">
+                    <label>Current API URL</label>
+                    <input type="url" id="apiUrl" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Display Page URL</label>
+                    <input type="url" id="displayUrl" value="display.html" readonly>
+                </div>
+                <button onclick="window.open('display.html', '_blank')" class="btn-success">🔗 Open Display Page</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - REPLACE WITH YOUR GOOGLE APPS SCRIPT WEB APP URL
+        const CONFIG = {
+            apiUrl: 'YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL'
+        };
+
+        let isAuthenticated = false;
+        let currentTab = 'ticker';
+        let contentData = {
+            ticker: [],
+            slides: [],
+            ads: [],
+            footer: []
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if already authenticated
+            const authToken = sessionStorage.getItem('authToken');
+            if (authToken) {
+                isAuthenticated = true;
+                showAdminPanel();
+                loadContent();
+            }
+
+            // Form submissions
+            document.getElementById('loginForm').addEventListener('submit', login);
+            document.getElementById('tickerForm').addEventListener('submit', addTicker);
+            document.getElementById('slidesForm').addEventListener('submit', addSlide);
+            document.getElementById('adsForm').addEventListener('submit', addAd);
+            document.getElementById('footerForm').addEventListener('submit', addFooter);
+
+            // Set API URL in settings
+            document.getElementById('apiUrl').value = CONFIG.apiUrl;
+        });
+
+        // Login
+        async function login(e) {
+            e.preventDefault();
+            const password = document.getElementById('loginPassword').value;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}?action=authenticate`, {
+                    method: 'POST',
+                    body: JSON.stringify({ password })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    sessionStorage.setItem('authToken', result.token);
+                    isAuthenticated = true;
+                    showAdminPanel();
+                    await loadContent();
+                } else {
+                    showMessage('loginMessage', 'Invalid password', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showMessage('loginMessage', 'Login failed. Please try again.', 'error');
+            }
+
+            showLoading(false);
+        }
+
+        // Logout
+        function logout() {
+            sessionStorage.removeItem('authToken');
+            isAuthenticated = false;
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('adminPanel').classList.remove('active');
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Show Admin Panel
+        function showAdminPanel() {
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('adminPanel').classList.add('active');
+        }
+
+        // Switch Tab
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabName}-content`).classList.add('active');
+        }
+
+        // Load Content
+        async function loadContent() {
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}?action=getContent`);
+                const data = await response.json();
+
+                contentData = data;
+                renderAllContent();
+            } catch (error) {
+                console.error('Error loading content:', error);
+                showMessage('globalMessage', 'Failed to load content', 'error');
+            }
+
+            showLoading(false);
+        }
+
+        // Render All Content
+        function renderAllContent() {
+            renderTickerList();
+            renderSlidesList();
+            renderAdsList();
+            renderFooterList();
+        }
+
+        // Render Ticker List
+        function renderTickerList() {
+            const list = document.getElementById('tickerList');
+            list.innerHTML = contentData.ticker.map((item, index) => `
+                <div class="item">
+                    <div class="item-content">
+                        <div class="item-text">${item}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-danger" onclick="deleteItem('ticker', ${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Slides List
+        function renderSlidesList() {
+            const list = document.getElementById('slidesList');
+            list.innerHTML = contentData.slides.map((item, index) => `
+                <div class="item">
+                    <div class="item-content">
+                        <div class="item-title">${item.title || 'Untitled Slide'}</div>
+                        <div class="item-text">${item.description || ''}</div>
+                        ${item.image ? `<div class="item-text" style="opacity: 0.5;">Image: ${item.image}</div>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-danger" onclick="deleteItem('slides', ${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Ads List
+        function renderAdsList() {
+            const list = document.getElementById('adsList');
+            list.innerHTML = contentData.ads.map((item, index) => `
+                <div class="item">
+                    <div class="item-content">
+                        <div class="item-title">${item.title || 'Untitled Ad'}</div>
+                        <div class="item-text">${item.text || ''}</div>
+                        ${item.image ? `<div class="item-text" style="opacity: 0.5;">Image: ${item.image}</div>` : ''}
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-danger" onclick="deleteItem('ads', ${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Render Footer List
+        function renderFooterList() {
+            const list = document.getElementById('footerList');
+            list.innerHTML = contentData.footer.map((item, index) => `
+                <div class="item">
+                    <div class="item-content">
+                        <div class="item-text">${item}</div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="btn-danger" onclick="deleteItem('footer', ${index})">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add Ticker
+        async function addTicker(e) {
+            e.preventDefault();
+            const text = document.getElementById('tickerText').value;
+
+            await saveContent('ticker', { text });
+            document.getElementById('tickerForm').reset();
+        }
+
+        // Add Slide
+        async function addSlide(e) {
+            e.preventDefault();
+            const slide = {
+                title: document.getElementById('slideTitle').value,
+                description: document.getElementById('slideDescription').value,
+                image: document.getElementById('slideImage').value
+            };
+
+            await saveContent('slides', slide);
+            document.getElementById('slidesForm').reset();
+        }
+
+        // Add Ad
+        async function addAd(e) {
+            e.preventDefault();
+            const ad = {
+                title: document.getElementById('adTitle').value,
+                text: document.getElementById('adText').value,
+                image: document.getElementById('adImage').value
+            };
+
+            await saveContent('ads', ad);
+            document.getElementById('adsForm').reset();
+        }
+
+        // Add Footer
+        async function addFooter(e) {
+            e.preventDefault();
+            const text = document.getElementById('footerText').value;
+
+            await saveContent('footer', { text });
+            document.getElementById('footerForm').reset();
+        }
+
+        // Save Content
+        async function saveContent(type, data) {
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}?action=saveContent`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': sessionStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify({ type, data })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await loadContent();
+                    showMessage('globalMessage', 'Content saved successfully!', 'success');
+                } else {
+                    showMessage('globalMessage', 'Failed to save content', 'error');
+                }
+            } catch (error) {
+                console.error('Save error:', error);
+                showMessage('globalMessage', 'Failed to save content', 'error');
+            }
+
+            showLoading(false);
+        }
+
+        // Delete Item
+        async function deleteItem(type, index) {
+            if (!confirm('Are you sure you want to delete this item?')) return;
+
+            showLoading(true);
+
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}?action=deleteContent`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': sessionStorage.getItem('authToken')
+                    },
+                    body: JSON.stringify({ type, index })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    await loadContent();
+                    showMessage('globalMessage', 'Item deleted successfully!', 'success');
+                } else {
+                    showMessage('globalMessage', 'Failed to delete item', 'error');
+                }
+            } catch (error) {
+                console.error('Delete error:', error);
+                showMessage('globalMessage', 'Failed to delete item', 'error');
+            }
+
+            showLoading(false);
+        }
+
+        // Show Message
+        function showMessage(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `message ${type} show`;
+
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 5000);
+        }
+
+        // Show Loading
+        function showLoading(show) {
+            const overlay = document.getElementById('loadingOverlay');
+            if (show) {
+                overlay.classList.add('show');
+            } else {
+                overlay.classList.remove('show');
+            }
+        }
+    </script>
+</body>
+</html>
